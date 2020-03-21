@@ -1,0 +1,26 @@
+title Auth0 Playground
+
+User->Application: GET
+Application->Auth0: Create token
+Auth0->Login Provider: Ask credentials
+User->Login Provider: Credentials + authorization
+Login Provider-->Auth0: Authorization
+Auth0-->Application: Token (callback)
+Application->API: POST new user + token (no body)
+API->Auth0: Validate token
+Auth0-->API: OK
+API->Auth0: GET user data + roles
+Auth0-->API: User data
+API->API: Store user data
+API-->Application: 201
+Application-->User: Logged in
+
+====
+
+User->Application: GET resource (logged in)
+Application->API: GET private resource + token
+API->Auth0: Validate token
+Auth0-->API: OK
+API->API: GET user roles
+API-->Application: Role-based private content
+Application-->User: Private content
