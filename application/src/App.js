@@ -5,7 +5,13 @@ import { useAuth0 } from './contexts/auth0-context';
 import Header from './components/Header';
 
 function App() {
-  const { isLoading, user, loginWithRedirect, logout } = useAuth0();
+  const { isLoading, user, loginWithRedirect, logout, getIdTokenClaims } = useAuth0();
+
+  if (!isLoading && user) {
+    getIdTokenClaims().then(claims =>
+        console.log("claims", claims)
+    );
+  }
 
   return (
     <>
