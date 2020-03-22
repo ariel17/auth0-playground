@@ -9,7 +9,7 @@ Diagram generated with [sequencediagram.org][1].
 ## How to start the playground
 
 ```bash
-$ docker-compose up
+$ docker-compose up --build  # rebuild is required when updating arguments!
 ```
 
 ## Resources
