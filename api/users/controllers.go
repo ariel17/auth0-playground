@@ -1,10 +1,10 @@
 package users
 
 import (
-	"errors"
 	"net/http"
 	"time"
 
+	"github.com/ariel17/auth0-playground/api/auth"
 	"github.com/ariel17/auth0-playground/api/config"
 	"github.com/gin-gonic/gin"
 )
@@ -13,26 +13,77 @@ var (
 	groupsKey      = config.ApplicationURL + "/roles"
 	rolesKey       = config.ApplicationURL + "/roles"
 	permissionsKey = config.ApplicationURL + "/permissions"
-	usersStorage   = []*user{}
+	usersStorage   = map[string]*user{}
 )
 
-func createUser(c *gin.Context) {
-	user, err := saveNewUser(c)
+func createUserController(c *gin.Context) {
+	claims, err := auth.GetClaims(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"user": user})
+	if _, exists := getUser(claims); exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user already exist"})
+		return
+	}
+	user, err := saveNewUser(claims)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusCreated, user)
 }
 
-func saveNewUser(c *gin.Context) (*user, error) {
-	v, exists := c.Get("claims")
-	if !exists {
-		return nil, errors.New("claims not found")
+func getAllUsersController(c *gin.Context) {
+	onlyUsers := []*user{}
+	for _, v := range usersStorage {
+		onlyUsers = append(onlyUsers, v)
 	}
-	claims := v.(map[string]interface{})
+	c.JSON(http.StatusOK, onlyUsers)
+}
+
+func getUserController(c *gin.Context) {
+	claims, err := auth.GetClaims(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if user, exists := getUser(claims); exists {
+		c.JSON(http.StatusOK, user)
+		return
+	}
+	c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+}
+
+func deleteUserController(c *gin.Context) {
+	claims, err := auth.GetClaims(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	user, exists := getUser(claims)
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		return
+	}
+	delete(usersStorage, user.ID)
+	now := time.Now()
+	user.DeletedAt = &now
+	c.JSON(http.StatusOK, user)
+}
+
+func getUser(claims auth.Claims) (*user, bool) {
+	id := claims["sub"].(string)
+	user, exists := usersStorage[id]
+	return user, exists
+}
+
+func saveNewUser(claims auth.Claims) (*user, error) {
+	id := claims["sub"].(string)
+
 	user := user{
-		ID:          claims["sub"].(string),
+		ID:          id,
 		Nickname:    claims["nickname"].(string),
 		GivenName:   claims["given_name"].(string),
 		FamilyName:  claims["family_name"].(string),
@@ -45,8 +96,7 @@ func saveNewUser(c *gin.Context) (*user, error) {
 	}
 	user.Email.Address = claims["email"].(string)
 	user.Email.IsVerified = claims["email_verified"].(bool)
-
-	usersStorage = append(usersStorage, &user)
+	usersStorage[id] = &user
 	return &user, nil
 }
 

@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -9,6 +10,9 @@ import (
 	"github.com/gin-gonic/gin"
 	jose "gopkg.in/square/go-jose.v2"
 )
+
+// Claims represents the metadata contained in token.
+type Claims map[string]interface{}
 
 var validator *auth0.JWTValidator
 
@@ -24,7 +28,7 @@ func ValidateToken() gin.HandlerFunc {
 			return
 		}
 
-		claims := map[string]interface{}{}
+		claims := Claims{}
 		err = validator.Claims(c.Request, token, &claims)
 		if err != nil {
 			fmt.Println("Invalid claims:", err)
@@ -34,9 +38,17 @@ func ValidateToken() gin.HandlerFunc {
 		}
 
 		c.Set("claims", claims)
-		fmt.Println("Claims:", claims)
 		c.Next()
 	})
+}
+
+// GetClaims extract token claims from context.
+func GetClaims(c *gin.Context) (Claims, error) {
+	v, exists := c.Get("claims")
+	if !exists {
+		return nil, errors.New("claims not found")
+	}
+	return v.(Claims), nil
 }
 
 func newValidator(tenantDomain, audience string) *auth0.JWTValidator {
