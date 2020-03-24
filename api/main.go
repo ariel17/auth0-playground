@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/ariel17/auth0-playground/api/items"
 	"github.com/ariel17/auth0-playground/api/users"
 	"github.com/gin-gonic/gin"
 )
@@ -15,5 +16,6 @@ func main() {
 	})
 
 	users.AddRoutes(r)
+	items.AddRoutes(r)
 	r.Run() // listen and serve on 0.0.0.0:8080
 }
