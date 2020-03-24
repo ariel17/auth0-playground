@@ -18,6 +18,7 @@ func ValidateToken() gin.HandlerFunc {
 	return gin.HandlerFunc(func(c *gin.Context) {
 		token, err := validator.ValidateRequest(c.Request)
 		if err != nil {
+			fmt.Println("Token is not valid:", err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "token is not valid"})
 			c.Abort()
 			return
@@ -26,12 +27,13 @@ func ValidateToken() gin.HandlerFunc {
 		claims := map[string]interface{}{}
 		err = validator.Claims(c.Request, token, &claims)
 		if err != nil {
+			fmt.Println("Invalid claims:", err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid claims"})
 			c.Abort()
-			fmt.Println("Invalid claims:", err)
 			return
 		}
 
+		c.Set("claims", claims)
 		fmt.Println("Claims:", claims)
 		c.Next()
 	})

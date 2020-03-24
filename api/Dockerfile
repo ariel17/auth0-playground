@@ -12,4 +12,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
 FROM scratch
 COPY --from=builder /app/api /app/
 EXPOSE 8080
+ENV AUTH0_DOMAIN=tenant.auth0.com
+ENV AUTH0_AUDIENCE=1234567890abcde
+ENV APPLICATION_URL=http://localhost/
 ENTRYPOINT ["/app/api"]
