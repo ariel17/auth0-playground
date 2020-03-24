@@ -12,9 +12,25 @@ import (
 )
 
 // Claims represents the metadata contained in token.
-type Claims map[string]interface{}
+type Claims struct {
+	ID            string
+	Nickname      string
+	GivenName     string
+	FamilyName    string
+	Picture       string
+	Groups        []string
+	Roles         []string
+	Permissions   []string
+	Email         string
+	EmailVerified bool
+}
 
-var validator *auth0.JWTValidator
+var (
+	validator      *auth0.JWTValidator
+	groupsKey      = config.ApplicationURL + "/roles"
+	rolesKey       = config.ApplicationURL + "/roles"
+	permissionsKey = config.ApplicationURL + "/permissions"
+)
 
 // ValidateToken TODO
 // See: https://github.com/auth0-community/auth0-go#example
@@ -28,8 +44,8 @@ func ValidateToken() gin.HandlerFunc {
 			return
 		}
 
-		claims := Claims{}
-		err = validator.Claims(c.Request, token, &claims)
+		rawClaims := map[string]interface{}{}
+		err = validator.Claims(c.Request, token, &rawClaims)
 		if err != nil {
 			fmt.Println("Invalid claims:", err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid claims"})
@@ -37,18 +53,39 @@ func ValidateToken() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("claims", claims)
+		claims := Claims{
+			ID:            rawClaims["sub"].(string),
+			Nickname:      rawClaims["nickname"].(string),
+			GivenName:     rawClaims["given_name"].(string),
+			FamilyName:    rawClaims["family_name"].(string),
+			Picture:       rawClaims["picture"].(string),
+			Groups:        parseClaimArray(rawClaims[groupsKey].([]interface{})),
+			Roles:         parseClaimArray(rawClaims[rolesKey].([]interface{})),
+			Permissions:   parseClaimArray(rawClaims[permissionsKey].([]interface{})),
+			Email:         rawClaims["email"].(string),
+			EmailVerified: rawClaims["email_verified"].(bool),
+		}
+
+		c.Set("claims", &claims)
 		c.Next()
 	})
 }
 
 // GetClaims extract token claims from context.
-func GetClaims(c *gin.Context) (Claims, error) {
+func GetClaims(c *gin.Context) (*Claims, error) {
 	v, exists := c.Get("claims")
 	if !exists {
 		return nil, errors.New("claims not found")
 	}
-	return v.(Claims), nil
+	return v.(*Claims), nil
+}
+
+func parseClaimArray(values []interface{}) []string {
+	newValues := []string{}
+	for _, v := range values {
+		newValues = append(newValues, v.(string))
+	}
+	return newValues
 }
 
 func newValidator(tenantDomain, audience string) *auth0.JWTValidator {

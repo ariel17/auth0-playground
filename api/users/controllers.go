@@ -5,15 +5,11 @@ import (
 	"time"
 
 	"github.com/ariel17/auth0-playground/api/auth"
-	"github.com/ariel17/auth0-playground/api/config"
 	"github.com/gin-gonic/gin"
 )
 
 var (
-	groupsKey      = config.ApplicationURL + "/roles"
-	rolesKey       = config.ApplicationURL + "/roles"
-	permissionsKey = config.ApplicationURL + "/permissions"
-	usersStorage   = map[string]*user{}
+	usersStorage = map[string]*user{}
 )
 
 func createUserController(c *gin.Context) {
@@ -73,37 +69,26 @@ func deleteUserController(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func getUser(claims auth.Claims) (*user, bool) {
-	id := claims["sub"].(string)
-	user, exists := usersStorage[id]
+func getUser(claims *auth.Claims) (*user, bool) {
+	user, exists := usersStorage[claims.ID]
 	return user, exists
 }
 
-func saveNewUser(claims auth.Claims) (*user, error) {
-	id := claims["sub"].(string)
-
+func saveNewUser(claims *auth.Claims) (*user, error) {
 	user := user{
-		ID:          id,
-		Nickname:    claims["nickname"].(string),
-		GivenName:   claims["given_name"].(string),
-		FamilyName:  claims["family_name"].(string),
-		AvatarURL:   claims["picture"].(string),
-		Groups:      parseClaimArray(claims[groupsKey].([]interface{})),
-		Roles:       parseClaimArray(claims[rolesKey].([]interface{})),
-		Permissions: parseClaimArray(claims[permissionsKey].([]interface{})),
+		ID:          claims.ID,
+		Nickname:    claims.Nickname,
+		GivenName:   claims.GivenName,
+		FamilyName:  claims.FamilyName,
+		AvatarURL:   claims.Picture,
+		Groups:      claims.Groups,
+		Roles:       claims.Roles,
+		Permissions: claims.Permissions,
 		CreatedAt:   time.Now(),
 		Enabled:     true,
 	}
-	user.Email.Address = claims["email"].(string)
-	user.Email.IsVerified = claims["email_verified"].(bool)
-	usersStorage[id] = &user
+	user.Email.Address = claims.Email
+	user.Email.IsVerified = claims.EmailVerified
+	usersStorage[claims.ID] = &user
 	return &user, nil
-}
-
-func parseClaimArray(values []interface{}) []string {
-	newValues := []string{}
-	for _, v := range values {
-		newValues = append(newValues, v.(string))
-	}
-	return newValues
 }
