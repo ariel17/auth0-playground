@@ -99,11 +99,23 @@ func GetClaims(c *gin.Context) (*Claims, error) {
 
 func newClaims(claims map[string]interface{}) *Claims {
 	roles := parseClaimArray(claims[rolesKey].([]interface{}))
+	var givenName string
+	raw := claims["given_name"]
+	if raw != nil {
+		givenName = raw.(string)
+	}
+
+	var familyName string
+	raw = claims["family_name"]
+	if raw != nil {
+		familyName = raw.(string)
+	}
+
 	c := Claims{
 		ID:            claims["sub"].(string),
 		Nickname:      claims["nickname"].(string),
-		GivenName:     claims["given_name"].(string),
-		FamilyName:    claims["family_name"].(string),
+		GivenName:     givenName,
+		FamilyName:    familyName,
 		Picture:       claims["picture"].(string),
 		Groups:        parseClaimArray(claims[groupsKey].([]interface{})),
 		Roles:         roles,
