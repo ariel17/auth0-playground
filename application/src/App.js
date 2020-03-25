@@ -2,21 +2,12 @@
 
 import React from 'react';
 import { useAuth0 } from './contexts/auth0-context';
-import Header from './components/Header';
 
 function App() {
-  const { isLoading, user, loginWithRedirect, logout, getIdTokenClaims } = useAuth0();
-
-  if (!isLoading && user) {
-    getIdTokenClaims().then(claims =>
-        console.log("claims", claims)
-    );
-  }
+  const { isLoading, user, loginWithRedirect, logout, token } = useAuth0();
 
   return (
     <>
-      <Header />
-
       <div className="hero is-info is-fullheight">
         <div className="hero-body">
           <div className="container has-text-centered">
@@ -32,6 +23,7 @@ function App() {
               <>
                 <h1>You are logged in!</h1>
                 <p>Hello {user.name}</p>
+                <p>Your token is: <code>{token}</code></p>
 
                 {user.picture && <img src={user.picture} alt="My Avatar" />}
                 <hr />

@@ -15,7 +15,8 @@ export class Auth0Provider extends Component {
         auth0Client: null,
         isLoading: true,
         isAuthenticated: false,
-        user: null
+        user: null,
+        token: null
     };
     config = {
         domain: process.env.REACT_APP_AUTH0_DOMAIN,
@@ -49,12 +50,16 @@ export class Auth0Provider extends Component {
         await this.state.auth0Client.handleRedirectCallback();
         const user = await this.state.auth0Client.getUser();
 
+        this.state.auth0Client.getIdTokenClaims().then(claims => this.setState({
+            token: claims.__raw,
+        }));
+
         this.setState({ user, isAuthenticated: true, isLoading: false });
         window.history.replaceState({}, document.title, window.location.pathname);
     };
 
     render() {
-        const { auth0Client, isLoading, isAuthenticated, user } = this.state;
+        const { auth0Client, isLoading, isAuthenticated, user, token } = this.state;
         const { children } = this.props;
         const configObject = {
             isLoading,
@@ -63,7 +68,8 @@ export class Auth0Provider extends Component {
             loginWithRedirect: (...p) => auth0Client.loginWithRedirect(...p),
             getTokenSilently: (...p) => auth0Client.getTokenSilently(...p),
             getIdTokenClaims: (...p) => auth0Client.getIdTokenClaims(...p),
-            logout: (...p) => auth0Client.logout(...p)
+            logout: (...p) => auth0Client.logout(...p),
+            token
         };
         return (
             <Auth0Context.Provider value={configObject}>
