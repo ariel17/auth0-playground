@@ -18,3 +18,4 @@ services:
       - AUTH0_DOMAIN=ariel17.auth0.com
       - AUTH0_AUDIENCE=GU91ADkwV3Cztq4vEnGGyiPkuvFtHzZ1
       - APPLICATION_URL=https://auth0-playground.ariel17.com.ar
+      - ADMIN_ROLES=admin 
