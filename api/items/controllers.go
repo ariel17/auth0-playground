@@ -29,20 +29,26 @@ func createItemController(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	c.JSON(http.StatusCreated, item)
 }
 
 func getAllItemsController(c *gin.Context) {
+	claims, err := auth.GetClaims(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	onlyItems := []*item{}
 	for _, v := range itemsStorage {
-		onlyItems = append(onlyItems, v)
+		if v.UserID == claims.ID {
+			onlyItems = append(onlyItems, v)
+		}
 	}
 	c.JSON(http.StatusOK, onlyItems)
 }
 
 func getItemController(c *gin.Context) {
-	_, err := auth.GetClaims(c)
+	claims, err := auth.GetClaims(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -54,7 +60,7 @@ func getItemController(c *gin.Context) {
 		return
 	}
 	item, exists := itemsStorage[id]
-	if exists {
+	if exists && item.UserID == claims.ID {
 		c.JSON(http.StatusOK, item)
 		return
 	}
@@ -62,7 +68,7 @@ func getItemController(c *gin.Context) {
 }
 
 func deleteItemController(c *gin.Context) {
-	_, err := auth.GetClaims(c)
+	claims, err := auth.GetClaims(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -74,14 +80,14 @@ func deleteItemController(c *gin.Context) {
 		return
 	}
 	item, exists := itemsStorage[id]
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "item not found"})
+	if exists && item.UserID == claims.ID {
+		delete(itemsStorage, id)
+		now := time.Now()
+		item.DeletedAt = &now
+		c.JSON(http.StatusOK, item)
 		return
 	}
-	delete(itemsStorage, id)
-	now := time.Now()
-	item.DeletedAt = &now
-	c.JSON(http.StatusOK, item)
+	c.JSON(http.StatusNotFound, gin.H{"error": "item not found"})
 }
 
 func saveNewItem(claims *auth.Claims, newItem *newItem) (*item, error) {
