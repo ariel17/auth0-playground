@@ -57,8 +57,8 @@ My user is in the `admin` group, so I am able to perform any operation:
 ![Usage #3](./docs/usage_3.png)
 
 ```bash
-$ token="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIs..."
-$ curl -XPOST -H "Authorization: Bearer $token" http://localhost:8080/users/ | jq .
+$ admin="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIs..."
+$ curl -XPOST -H "Authorization: Bearer $admin" http://localhost:8080/users/ | jq .
 
 {
   "id": "google-oauth2|100920454653990245243",
@@ -90,7 +90,7 @@ $ curl -XPOST -H "Authorization: Bearer $token" http://localhost:8080/users/ | j
   "enabled": true
 }
 
-$ curl -XDELETE -H "Authorization: Bearer $token" "http://localhost:8080/users/google-oauth2|100920454653990245243" | jq .
+$ curl -XDELETE -H "Authorization: Bearer $admin" "http://localhost:8080/users/google-oauth2|100920454653990245243" | jq .
 
 {
   .
@@ -144,7 +144,7 @@ Creating a item using both users. This resource only shows items belonging to
 the owner or shows all to admin users.
 
 ```bash
-$ curl -XPOST -H "Authorization: Bearer $token" http://localhost:8080/items/ --data '{"name":"item admin","description":"An admin item"}' | jq .
+$ curl -XPOST -H "Authorization: Bearer $admin" http://localhost:8080/items/ --data '{"name":"item admin","description":"An admin item"}' | jq .
 
 {
   "id": "cf4f125a-2ebd-4e38-8e06-3d1625ffb100",
@@ -176,7 +176,7 @@ $ curl -H "Authorization: Bearer $normal" http://localhost:8080/items/ | jq .
   }
 ]
 
-$ curl -H "Authorization: Bearer $token" http://localhost:8080/items/ | jq .
+$ curl -H "Authorization: Bearer $admin" http://localhost:8080/items/ | jq .
 
 [
   {
@@ -201,7 +201,7 @@ $ curl -XDELETE -H "Authorization: Bearer $normal" "http://localhost:8080/items/
   "error": "item not found"
 }
 
-$ curl -XDELETE -H "Authorization: Bearer $token" "http://localhost:8080/items/cf4f125a-2ebd-4e38-8e06-3d1625ffb100" | jq .
+$ curl -XDELETE -H "Authorization: Bearer $admin" "http://localhost:8080/items/cf4f125a-2ebd-4e38-8e06-3d1625ffb100" | jq .
 
 {
   "id": "cf4f125a-2ebd-4e38-8e06-3d1625ffb100",
@@ -211,14 +211,19 @@ $ curl -XDELETE -H "Authorization: Bearer $token" "http://localhost:8080/items/c
   "created_at": "2020-03-24T23:57:18.909182-03:00",
   "deleted_at": "2020-03-25T00:00:51.465669-03:00"
 }
+```
 
+Interacting with `users` resource. Only admin users have the ability to modify
+existing users; normal users only can create/delete themselves.
+
+```bash
 $ curl -H "Authorization: Bearer $normal" http://localhost:8080/users/ | jq .
 
 {
   "error": "invalid permissions"
 }
 
-$
+$ curl -H "Authorization: Bearer $admin" http://localhost:8080/users/ | jq .
 
 [
   {
@@ -284,7 +289,7 @@ $ curl -XDELETE -H "Authorization: Bearer $normal" "http://localhost:8080/users/
   "error": "user not found"
 }
 
-$ curl -XDELETE -H "Authorization: Bearer $token" "http://localhost:8080/users/auth0|5e7abb0918dc2d0c6a5fd8cd" | jq .
+$ curl -XDELETE -H "Authorization: Bearer $admin" "http://localhost:8080/users/auth0|5e7abb0918dc2d0c6a5fd8cd" | jq .
 
 {
   "id": "auth0|5e7abb0918dc2d0c6a5fd8cd",
