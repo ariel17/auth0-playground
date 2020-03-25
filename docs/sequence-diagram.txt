@@ -5,22 +5,24 @@ Application->Auth0: Create token
 Auth0->Login Provider: Ask credentials
 User->Login Provider: Credentials + authorization
 Login Provider-->Auth0: Authorization
+Auth0->Auth0: Create user (if needed)
 Auth0-->Application: Token (callback)
-Application->API: POST new user + token (no body)
-API->Auth0: Validate token
-Auth0-->API: OK
-API->Auth0: GET user data + roles
-Auth0-->API: User data
-API->API: Store user data
-API-->Application: 201
+Application->Auth0: Get user data and roles
+Auth0-->Application:
 Application-->User: Logged in
 
 ====
 
-User->Application: GET resource (logged in)
-Application->API: GET private resource + token
-API->Auth0: Validate token
-Auth0-->API: OK
+User->API: POST new user + token (no body)
+API->Auth0: Get keys for decoding token
+Auth0-->API:
+API->API: Decode user data + roles
+API->API: Store user data
+API-->User: 201
+
+====
+
+User->API: GET private resource + token
+API->API: Validates token
 API->API: GET user roles
-API-->Application: Role-based private content
-Application-->User: Private content
+API-->User: Role-based private content
