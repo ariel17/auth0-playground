@@ -36,6 +36,21 @@ Add permissions, roles and groups.
 ![Authorization Extension #5](./docs/extensions_5.png)
 ![Authorization Extension #6](./docs/extensions_6.png)
 
+Back to Auth0 Dashboard, change the automatically added rule to store the
+Authorization Extension data as metadata in token:
+
+![Authorization Extension #7](./docs/extensions_7.png)
+
+Change it to add the following lines:
+
+![Authorization Extension #8](./docs/extensions_8.png)
+
+That's it, this is all what is required from Auth0. Let's go to the playground
+and interact with the API using different tokens.
+
+
+
+
 
 ## Resources
 
