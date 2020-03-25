@@ -33,44 +33,51 @@ func createUserController(c *gin.Context) {
 }
 
 func getAllUsersController(c *gin.Context) {
+	claims, err := auth.GetClaims(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 	onlyUsers := []*user{}
-	for _, v := range usersStorage {
-		onlyUsers = append(onlyUsers, v)
+	if claims.IsAdmin {
+		for _, v := range usersStorage {
+			onlyUsers = append(onlyUsers, v)
+		}
 	}
 	c.JSON(http.StatusOK, onlyUsers)
 }
 
 func getUserController(c *gin.Context) {
-	_, err := auth.GetClaims(c)
+	claims, err := auth.GetClaims(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	id := c.Param("id")
 	user, exists := usersStorage[id]
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+	if exists && (user.ID == claims.ID || claims.IsAdmin) {
+		c.JSON(http.StatusOK, user)
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 }
 
 func deleteUserController(c *gin.Context) {
-	_, err := auth.GetClaims(c)
+	claims, err := auth.GetClaims(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	id := c.Param("id")
 	user, exists := usersStorage[id]
-	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+	if exists && (user.ID == claims.ID || claims.IsAdmin) {
+		delete(usersStorage, id)
+		now := time.Now()
+		user.DeletedAt = &now
+		c.JSON(http.StatusOK, user)
 		return
 	}
-	delete(usersStorage, id)
-	now := time.Now()
-	user.DeletedAt = &now
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 }
 
 func saveNewUser(claims *auth.Claims) (*user, error) {

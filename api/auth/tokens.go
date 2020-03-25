@@ -30,16 +30,19 @@ type Claims struct {
 	Permissions   []string
 	Email         string
 	EmailVerified bool
+	IsAdmin       bool
 }
 
 // HasPermissions check if the indicated list of permissions exists in claims.
 func (c *Claims) HasPermissions(required []string) bool {
-	fmt.Println("permissions:", c.Permissions)
-	fmt.Println("required:", required)
+	return hasValue(c.Permissions, required)
+}
+
+func hasValue(current, required []string) bool {
 	for _, r := range required {
 		var found bool
-		for _, p := range c.Permissions {
-			if r == p {
+		for _, c := range current {
+			if r == c {
 				found = true
 				break
 			}
@@ -72,15 +75,15 @@ func ValidateToken(requiredPermissions []string) gin.HandlerFunc {
 			return
 		}
 
-		claims := createClaims(rawClaims)
+		claims := newClaims(rawClaims)
 		if !claims.HasPermissions(requiredPermissions) {
 			fmt.Printf("Invalid permissions: current=%v, required=%v", claims.Permissions, requiredPermissions)
 			c.JSON(http.StatusForbidden, gin.H{"error": "invalid permissions"})
 			c.Abort()
 			return
 		}
-		c.Set("claims", claims)
 
+		c.Set("claims", claims)
 		c.Next()
 	})
 }
@@ -94,7 +97,8 @@ func GetClaims(c *gin.Context) (*Claims, error) {
 	return v.(*Claims), nil
 }
 
-func createClaims(claims map[string]interface{}) *Claims {
+func newClaims(claims map[string]interface{}) *Claims {
+	roles := parseClaimArray(claims[rolesKey].([]interface{}))
 	c := Claims{
 		ID:            claims["sub"].(string),
 		Nickname:      claims["nickname"].(string),
@@ -102,10 +106,11 @@ func createClaims(claims map[string]interface{}) *Claims {
 		FamilyName:    claims["family_name"].(string),
 		Picture:       claims["picture"].(string),
 		Groups:        parseClaimArray(claims[groupsKey].([]interface{})),
-		Roles:         parseClaimArray(claims[rolesKey].([]interface{})),
+		Roles:         roles,
 		Permissions:   parseClaimArray(claims[permissionsKey].([]interface{})),
 		Email:         claims["email"].(string),
 		EmailVerified: claims["email_verified"].(bool),
+		IsAdmin:       hasValue(roles, config.AdminRoles),
 	}
 	return &c
 }

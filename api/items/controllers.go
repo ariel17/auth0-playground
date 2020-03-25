@@ -40,7 +40,7 @@ func getAllItemsController(c *gin.Context) {
 	}
 	onlyItems := []*item{}
 	for _, v := range itemsStorage {
-		if v.UserID == claims.ID {
+		if v.UserID == claims.ID || claims.IsAdmin {
 			onlyItems = append(onlyItems, v)
 		}
 	}
@@ -60,7 +60,7 @@ func getItemController(c *gin.Context) {
 		return
 	}
 	item, exists := itemsStorage[id]
-	if exists && item.UserID == claims.ID {
+	if exists && item.UserID == claims.ID || claims.IsAdmin {
 		c.JSON(http.StatusOK, item)
 		return
 	}
@@ -80,7 +80,7 @@ func deleteItemController(c *gin.Context) {
 		return
 	}
 	item, exists := itemsStorage[id]
-	if exists && item.UserID == claims.ID {
+	if exists && (item.UserID == claims.ID || claims.IsAdmin) {
 		delete(itemsStorage, id)
 		now := time.Now()
 		item.DeletedAt = &now
