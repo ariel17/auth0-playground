@@ -12,13 +12,30 @@ Diagram generated with [sequencediagram.org][1].
 $ docker-compose up --build  # rebuild is required when updating arguments!
 ```
 
-## Application + Auth0 configuration
+## Auth0 configuration
+
+### Application
 
 * Client ID represents the Auth0 application identification.
 * Domain is your Auth0 tenant + Auth0 URL.
 
 ![Application configuration #1](./docs/application_1.png)
 ![Application configuration #2](./docs/application_2.png)
+
+### Authorization extension
+
+Search it, install it and authorize it.
+
+![Authorization Extension #1](./docs/extensions_1.png)
+
+Add permissions, roles and groups.
+
+![Authorization Extension #2](./docs/extensions_2.png)
+![Authorization Extension #3](./docs/extensions_3.png)
+![Authorization Extension #4](./docs/extensions_4.png)
+![Authorization Extension #5](./docs/extensions_5.png)
+![Authorization Extension #6](./docs/extensions_6.png)
+
 
 ## Resources
 
