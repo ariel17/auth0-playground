@@ -25,6 +25,9 @@ function App() {
                 <p>Hello {user.name}</p>
                 <p>Your token is: <code>{token}</code></p>
 
+                // then I should request an API
+
+
                 {user.picture && <img src={user.picture} alt="My Avatar" />}
                 <hr />
 

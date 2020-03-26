@@ -330,5 +330,6 @@ $ curl -XDELETE -H "Authorization: Bearer $admin" "http://localhost:8080/users/a
 * [User Profile Claims and the `scope` Parameter](https://auth0.com/docs/api-auth/tutorials/adoption/scope-custom-claims?_ga=2.91955164.779115028.1584866023-783797780.1584866023)
 * [Authorization Extension](https://auth0.com/docs/extensions/authorization-extension/v2)
 * [How to obtain id_token with auth0-spa-js](https://community.auth0.com/t/how-to-obtain-id-token-with-auth0-spa-js/27574)
+* [Why You Should Always Use Access Tokens to Secure an API](https://auth0.com/blog/why-should-use-accesstokens-to-secure-an-api/)
 
 [1]: https://sequencediagram.org

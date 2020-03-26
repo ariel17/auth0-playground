@@ -51,7 +51,7 @@ export class Auth0Provider extends Component {
         const user = await this.state.auth0Client.getUser();
 
         this.state.auth0Client.getIdTokenClaims().then(claims => this.setState({
-            token: claims.__raw,
+            token: claims.__raw,  // jwt
         }));
 
         this.setState({ user, isAuthenticated: true, isLoading: false });
